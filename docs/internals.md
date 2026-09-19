@@ -2,6 +2,17 @@
 
 [README](../README.md) に戻る。
 
+## 開発時の起動
+
+`npm run dev` はサーバー(:8787)とブラウザ側(:5173)を同時に上げ、ブラウザ側が `/api` と `/ws` を
+サーバーへ中継するので、見えるオリジンは1つです。本番相当で動かすなら `npm run build` して
+`npm start`(サーバーが `web/dist` も配ります)。
+
+API キーを入れる前に見た目だけ確かめたいときは `npm run dev -w web` だけ上げて、
+`?demo=recast`(会話中の画面まるごと)か `?demo=whiteboard`(ボード、実際に描ける)を開きます。
+単体のカードは `?demo=card`、`?demo=targets`、`?demo=board`、`?demo=review`、`?demo=compare`、
+`?demo=drill`、`?demo=answer`、`?demo=summary`。見本データは `web/src/demo.ts` です。
+
 ## 構成
 
 ```
