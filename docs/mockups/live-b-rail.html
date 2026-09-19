@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>案B 舞台と言い直しレール — 会話中の画面モックアップ</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#f3f1e9, #252822);
+  --surface: light-dark(#fcfbf6, #30352d);
+  --surface-alt: light-dark(#eeeee4, #292e26);
+  --ink: light-dark(#283f33, #eff0e5);
+  --muted: light-dark(#657166, #b2baac);
+  --line: light-dark(#d4dacd, #50594b);
+  --accent: light-dark(#355942, #c4d8b4);
+  --on-accent: light-dark(#ffffff, #23321f);
+  --soft: light-dark(#e3e9dc, #3a4733);
+  --success: light-dark(#326445, #bdd8ac);
+  --warning: light-dark(#846022, #e5c184);
+  --warning-soft: light-dark(#f3ead6, #443c2b);
+  --danger: light-dark(#a4493d, #edb0a2);
+  --danger-soft: light-dark(#f7e6df, #49332e);
+  --shadow: light-dark(#283f3310, #10140e28);
+  --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  background: var(--bg); color: var(--ink); font-synthesis: none;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 0 32px 32px; }
+button { font: inherit; cursor: pointer; }
+.mock-switch { position: fixed; right: 16px; top: 12px; z-index: 50; display: flex; gap: 4px; padding: 4px; border-radius: 8px; background: var(--ink); color: var(--bg); font-size: 11px; }
+.mock-switch span { align-self: center; padding: 0 8px; opacity: .7; }
+.mock-switch button { border: 0; border-radius: 5px; padding: 6px 10px; background: transparent; color: inherit; }
+.mock-switch button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+
+.masthead { width: min(1200px, 100%); margin: 0 auto; min-height: 72px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand-mark { display: flex; align-items: center; gap: 4px; height: 26px; color: var(--accent); }
+.brand-mark span { width: 5px; height: 12px; background: currentColor; border-radius: 4px; }
+.brand-mark span:nth-child(2) { height: 26px; } .brand-mark span:nth-child(3) { height: 18px; }
+h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.04em; }
+.scene-name { font-size: 12px; color: var(--muted); } .scene-name b { font-weight: 500; color: var(--ink); }
+
+#layout { width: min(1200px, 100%); margin: 24px auto 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "stage rail" "controls rail"; gap: 0 20px; }
+
+/* 舞台 */
+#stage { grid-area: stage; position: relative; min-height: 500px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface-alt); overflow: hidden; }
+
+/* 番の表示: 上に横一列の「レール」。順番が線路のように見える */
+#turnbar { position: absolute; top: 18px; left: 20px; right: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+#turnbar .seg { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-size: 13px; color: var(--muted); transition: all .3s ease; }
+#turnbar .seg::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+#stage[data-turn="teacher"] .seg.teacher, #stage[data-turn="you"] .seg.you, #stage[data-turn="thinking"] .seg.thinking { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 500; }
+#stage[data-turn="teacher"] .seg.teacher::before { background: var(--on-accent); animation: pulse 1.2s ease-in-out infinite; }
+#stage[data-turn="you"] .seg.you::before { background: var(--on-accent); }
+#stage[data-turn="thinking"] .seg.thinking::before { background: var(--on-accent); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .2; } }
+
+/* 中央の声 */
+#voice { position: absolute; inset: 0; display: grid; place-items: center; }
+.halo { position: relative; width: 150px; height: 150px; display: grid; place-items: center; }
+.halo .ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--line); transition: all .4s ease; }
+.halo .core { width: 84px; height: 84px; border-radius: 50%; background: var(--accent); opacity: .55; transform: scale(.85); transition: all .3s ease; }
+.halo .bars { position: absolute; display: none; gap: 5px; align-items: center; height: 36px; }
+.halo .bars i { width: 5px; height: 12px; border-radius: 3px; background: var(--accent); animation: bar 1s ease-in-out infinite; }
+.halo .bars i:nth-child(2) { height: 26px; animation-delay: .1s; } .halo .bars i:nth-child(3) { height: 36px; animation-delay: .2s; }
+.halo .bars i:nth-child(4) { height: 20px; animation-delay: .3s; } .halo .bars i:nth-child(5) { height: 10px; animation-delay: .4s; }
+@keyframes bar { 50% { transform: scaleY(.4); } }
+#stage[data-turn="teacher"] .core { opacity: 1; transform: scale(1); animation: breathe 1.6s ease-in-out infinite; }
+#stage[data-turn="teacher"] .ring { transform: scale(1.2); border-color: var(--accent); }
+@keyframes breathe { 50% { transform: scale(1.06); } }
+#stage[data-turn="you"] .core { opacity: 0; transform: scale(.3); }
+#stage[data-turn="you"] .ring { border: 2px dashed var(--accent); }
+#stage[data-turn="you"] .bars { display: flex; }
+#stage[data-turn="thinking"] .core { opacity: .35; transform: scale(.5); animation: pulse 1.2s ease-in-out infinite; }
+
+/* 先生の最後の一文 */
+#caption { position: absolute; left: 0; right: 0; bottom: 26px; padding: 0 48px; text-align: center; font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--muted); line-height: 1.5; }
+#caption::before { content: "teacher"; display: block; margin-bottom: 6px; font-family: -apple-system, "Hiragino Sans", sans-serif; font-style: normal; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; opacity: .7; }
+
+/* 右のレール: 目標(上) + 言い直し(下)。字幕は置かない */
+#rail { grid-area: rail; display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); overflow: hidden; }
+.rail-title { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 10px; color: var(--muted); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.rail-title b { font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink); font-size: 12px; }
+#goals { padding: 0 18px 14px; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+.goal { display: grid; grid-template-columns: 14px 1fr; column-gap: 10px; align-items: baseline; font-size: 13px; }
+.goal .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); align-self: center; }
+.goal .m { grid-column: 2; font-size: 11px; color: var(--muted); }
+.goal[data-status="used_well"] .dot { background: var(--success); } .goal[data-status="used_well"] .t { color: var(--success); font-weight: 500; }
+.goal[data-status="modeled"] .dot { background: var(--warning); } .goal[data-status="modeled"] .t { color: var(--warning); }
+.goal[data-status="heard"] .dot { background: var(--accent); }
+.goal:not([data-status]) .m { display: none; } /* 意味は、出てきた表現から順に開く */
+
+#recasts { flex: 1; overflow-y: auto; padding: 14px 14px 16px; display: grid; gap: 10px; align-content: start; }
+.rc { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-alt); }
+.rc.new { background: var(--surface); border-color: var(--accent); box-shadow: 0 8px 24px var(--shadow); }
+.rc.done { opacity: .6; }
+.rc .orig { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.rc .orig s { text-decoration-color: var(--danger); }
+.rc .recast { margin: 6px 0 0; font-family: var(--serif); font-size: 17px; line-height: 1.4; }
+.rc .recast mark { background: var(--soft); color: var(--accent); border-radius: 3px; padding: 0 3px; }
+.rc .note { margin: 8px 0 0; font-size: 11px; color: var(--accent); line-height: 1.5; }
+.rc .row { display: flex; gap: 6px; margin-top: 10px; }
+.rc .row button { min-height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--ink); font-size: 12px; }
+.rc.new .row .say { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 500; }
+.rc.done .row .say { color: var(--success); border-color: var(--success); }
+
+#controls { grid-area: controls; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; padding: 18px 8px 0; }
+#status { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--muted); }
+#status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+#mic-wrap { display: flex; align-items: center; gap: 12px; }
+#mic { width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: grid; place-items: center; transition: all .2s ease; }
+#stage[data-turn="you"] ~ #controls #mic { background: var(--accent); color: var(--on-accent); border-color: var(--accent); box-shadow: 0 0 0 6px var(--soft); }
+#mic svg { width: 24px; height: 24px; }
+.small { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; }
+#end { justify-self: end; min-height: 36px; padding: 0 14px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--danger); font-size: 13px; }
+.legend { width: min(1200px, 100%); margin: 28px auto 0; font-size: 12px; color: var(--muted); line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="mock-switch" role="group" aria-label="モックアップの状態">
+  <span>状態</span>
+  <button type="button" data-set="teacher" aria-pressed="false">先生が話す</button>
+  <button type="button" data-set="you" aria-pressed="true">あなたの番</button>
+  <button type="button" data-set="thinking" aria-pressed="false">聞いている</button>
+</div>
+
+<header class="masthead">
+  <div class="brand"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><h1>English Teacher</h1></div>
+  <span class="scene-name">シーン会話 · <b>IT系: 朝会で進捗を話す</b> · 04:12</span>
+</header>
+
+<main id="layout">
+  <div id="stage" data-turn="you">
+    <div id="turnbar" aria-live="polite">
+      <div class="seg teacher">先生が話す</div>
+      <div class="seg you">あなたの番</div>
+      <div class="seg thinking">聞いている</div>
+    </div>
+    <div id="voice" aria-hidden="true">
+      <div class="halo"><span class="ring"></span><span class="core"></span><span class="bars"><i></i><i></i><i></i><i></i><i></i></span></div>
+    </div>
+    <p id="caption">Nice. So what's blocking you on the login bug?</p>
+  </div>
+
+  <aside id="rail" aria-label="目標と言い直し">
+    <div class="rail-title"><span>目標</span><b>1 / 5</b></div>
+    <div id="goals">
+      <div class="goal" data-status="used_well"><span class="dot"></span><span class="t">I'm working on</span><span class="m">〜に取り組んでいる</span></div>
+      <div class="goal" data-status="modeled"><span class="dot"></span><span class="t">blocked by</span><span class="m">〜のせいで止まっている</span></div>
+      <div class="goal" data-status="heard"><span class="dot"></span><span class="t">follow up</span><span class="m">あとで確認する</span></div>
+      <div class="goal"><span class="dot"></span><span class="t">wrap up</span><span class="m">切り上げる</span></div>
+      <div class="goal"><span class="dot"></span><span class="t">push back</span><span class="m">先送りを申し出る</span></div>
+    </div>
+    <div class="rail-title"><span>言い直し</span><b>2</b></div>
+    <div id="recasts">
+      <div class="rc new">
+        <p class="orig">I <s>wait</s> the API team <s>answer</s>.</p>
+        <p class="recast">I'm <mark>blocked by</mark> the API team. I'm <mark>waiting for</mark> their answer.</p>
+        <p class="note">blocked by … は「進まない理由」を一言で。</p>
+        <div class="row"><button type="button" class="say">🎙 言ってみる</button><button type="button">▶ 自分の声</button></div>
+      </div>
+      <div class="rc done">
+        <p class="orig">I <s>am work</s> the login bug.</p>
+        <p class="recast">I'm <mark>working on</mark> the login bug.</p>
+        <div class="row"><button type="button" class="say">✓ 言えた</button><button type="button">▶ 自分の声</button></div>
+      </div>
+    </div>
+  </aside>
+
+  <div id="controls">
+    <div id="status">接続中 · 自動で区切る</div>
+    <div id="mic-wrap">
+      <button type="button" class="small">ヒント</button>
+      <button id="mic" type="button" aria-label="マイク">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg>
+      </button>
+      <button type="button" class="small">字幕を見る</button>
+    </div>
+    <button id="end" type="button">終了して振り返る</button>
+  </div>
+</main>
+
+<p class="legend">案B: 右の欄を字幕から「目標と言い直し」に替える。番は舞台の上に横一列で示し、いま光っている段が自分の番かを教える。言い直しはセッション中ずっと積まれ、どれでも「言ってみる」で再挑戦できる。日本語の意味は、会話に出てきた表現から順に開く。</p>
+
+<script>
+const stage = document.getElementById('stage');
+document.querySelectorAll('.mock-switch button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.mock-switch button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  stage.dataset.turn = b.dataset.set;
+}));
+</script>
+</body>
+</html>

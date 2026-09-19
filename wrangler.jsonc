@@ -1,0 +1,94 @@
+{
+	// Cloudflare へ公開するときの設定。REPLACE_ME を自分の値に置き換える。
+	// 手順は docs/cloudflare-setup.md。埋め忘れは npm run cf:deploy が名前を挙げて止める。
+	// Node 版(npm run dev / npm start)だけ使うなら、このファイルは触らなくてよい。
+	"$schema": "node_modules/wrangler/config-schema.json",
+	// Worker・D1・R2 の名前は好きに変えてよい。D1 の名前は移行コマンドが設定から読む。
+	"name": "englishteacher",
+	// Cloudflare ダッシュボード右側の Account ID(32桁の16進)。
+	"account_id": "REPLACE_ME_CLOUDFLARE_ACCOUNT_ID",
+	"main": "cloudflare/src/index.ts",
+	"compatibility_date": "2026-09-18",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"nodejs_compat_populate_process_env"
+	],
+	"workers_dev": false,
+	"preview_urls": false,
+	"routes": [
+		{
+			// 公開するホスト名。Cloudflare で管理しているゾーンのもの。
+			"pattern": "REPLACE_ME.example.com",
+			"custom_domain": true
+		}
+	],
+	"alias": {
+		"@google/genai": "@google/genai/web"
+	},
+	"build": {
+		"command": "npm run build"
+	},
+	"assets": {
+		"directory": "./web/dist",
+		"binding": "ASSETS",
+		"run_worker_first": true
+	},
+	"vars": {
+		// routes のホスト名と同じものを https:// 付きで書く。Worker が届いた先を照合する。
+		"APP_ORIGIN": "https://REPLACE_ME.example.com",
+		// 使うのはこの1人だけ。Access が通した JWT のメールがこれと一致しないと 403。
+		"OWNER_EMAIL": "REPLACE_ME@example.com",
+		// Cloudflare Access の Self-hosted アプリ。設定が不足している場合はアクセスを拒否する。
+		// Zero Trust のチームドメイン(https:// と末尾の / は含めない)。
+		"ACCESS_TEAM_DOMAIN": "REPLACE_ME.cloudflareaccess.com",
+		// 同じ Access アプリの Application Audience (AUD) タグ(64桁の16進)。
+		"ACCESS_AUD": "REPLACE_ME_ACCESS_AUD",
+		"GEMINI_LIVE_MODEL": "gemini-3.8-live",
+		"GEMINI_FLASH_MODEL": "gemini-3.8-flash",
+		"RECORDING_ENABLED": "true",
+		"RECORDING_RETENTION_DAYS": "14",
+		"RECORDING_BUDGET_BYTES": "8000000000",
+		"MAX_SESSION_SECONDS": "3600"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "englishteacher-db",
+			"migrations_dir": "cloudflare/migrations",
+			// wrangler d1 create が表示する UUID。--update-config を付ければここに書き込まれる。
+			"database_id": "REPLACE_ME_D1_DATABASE_ID"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "RECORDINGS",
+			"bucket_name": "englishteacher-recordings"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "LESSONS",
+				"class_name": "LessonSession"
+			},
+			{
+				"name": "PROGRESS",
+				"class_name": "UserProgress"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+				"LessonSession",
+				"UserProgress"
+			]
+		}
+	],
+	"triggers": {
+		"crons": [
+			"*/30 * * * *"
+		]
+	}
+}

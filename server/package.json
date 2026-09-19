@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "オーケストレーター: Gemini Live セッションを張り、音声・文字起こし・ツール呼び出しをブラウザとつなぐ。",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "test": "node --import tsx --test 'src/**/*.test.ts'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google/genai": "2.22.0",
+    "ws": "8.21.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.3",
+    "@types/ws": "8.18.1",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3"
+  }
+}

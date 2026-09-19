@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.wrangler/
+worker-configuration.d.ts
+*.log
+.DS_Store
+
+# 学習の記録(data/results/<scene>.jsonl)。個人の成績なので共有しない。
+data/
+
+# クローンごとのローカル設定(推論の強さなど)。共有しない。
+.kiro/settings/cli.json
+
+# エージェントのローカル設定。共有しない。
+.claude/

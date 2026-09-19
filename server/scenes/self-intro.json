@@ -1,0 +1,57 @@
+{
+  "id": "self-intro",
+  "title": "自己紹介: 初対面の同僚と",
+  "situation": "You are Mia, a colleague meeting the learner for the first time at a small company get-together. Chat casually: names, where they are from, what they do, what they like doing outside work. Ask follow-up questions and share a little about yourself so it feels like a real conversation, not an interview.",
+  "learnerRole": "転職してきたばかりのエンジニア",
+  "promptVoice": true,
+  "targets": [
+    {
+      "term": "Nice to meet you.",
+      "meaning": "はじめまして",
+      "reading": "ナイス・トゥ・ミーチュー",
+      "example": "Hi, I'm Ken. Nice to meet you."
+    },
+    {
+      "term": "I work as",
+      "meaning": "〜として働いている",
+      "example": "I work as a backend engineer.",
+      "variants": ["I'm working as", "I am working as"]
+    },
+    {
+      "term": "I'm originally from",
+      "meaning": "出身は〜です",
+      "example": "I'm originally from Osaka.",
+      "variants": ["I am originally from"]
+    },
+    {
+      "term": "in my free time",
+      "meaning": "空いた時間には",
+      "example": "In my free time I go climbing."
+    },
+    {
+      "term": "How about you?",
+      "meaning": "あなたはどうですか",
+      "reading": "ハウ・アバウチュー",
+      "example": "I like coffee. How about you?"
+    }
+  ],
+  "drills": [
+    { "ja": "はじめまして。ケンです。", "en": "Nice to meet you. I'm Ken.", "accept": ["Nice to meet you, I'm Ken."] },
+    {
+      "ja": "バックエンドのエンジニアとして働いています。",
+      "en": "I work as a backend engineer.",
+      "accept": ["I'm working as a backend engineer."]
+    },
+    {
+      "ja": "出身は大阪です。",
+      "en": "I'm originally from Osaka.",
+      "accept": ["I am originally from Osaka.", "I'm from Osaka."]
+    },
+    {
+      "ja": "空いた時間にはクライミングに行きます。",
+      "en": "In my free time I go climbing.",
+      "accept": ["I go climbing in my free time."]
+    },
+    { "ja": "私はコーヒーが好きです。あなたは？", "en": "I like coffee. How about you?" }
+  ]
+}

@@ -1,0 +1,46 @@
+# main への push で Cloudflare へ配信する。
+# 手元の `npm run cf:deploy` と同じ検査(型検査・テスト・workerd起動検査)を通してから
+# D1のリモート移行と Worker の配信を行う。Gemini secret は登録済みのものを使い、
+# ここでは触らない(--ci)。キーを変えるときは手元から `npm run cf:deploy` を実行する。
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 本番は1本ずつ。走っている配信は途中で止めない(止めると中途半端な状態が残る)。
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Cloudflare のトークンがあるか確かめる
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "CLOUDFLARE_API_TOKEN が未設定です。Settings → Secrets and variables → Actions に登録してください。" >&2
+            exit 1
+          fi
+
+      - run: npm ci
+
+      - name: 検査して配信する
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/cloudflare-deploy.mjs --ci

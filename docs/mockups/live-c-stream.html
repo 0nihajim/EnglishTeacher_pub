@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>案C 声の流れ — 会話中の画面モックアップ</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#f3f1e9, #252822);
+  --surface: light-dark(#fcfbf6, #30352d);
+  --surface-alt: light-dark(#eeeee4, #292e26);
+  --ink: light-dark(#283f33, #eff0e5);
+  --muted: light-dark(#657166, #b2baac);
+  --line: light-dark(#d4dacd, #50594b);
+  --accent: light-dark(#355942, #c4d8b4);
+  --on-accent: light-dark(#ffffff, #23321f);
+  --soft: light-dark(#e3e9dc, #3a4733);
+  --success: light-dark(#326445, #bdd8ac);
+  --warning: light-dark(#846022, #e5c184);
+  --warning-soft: light-dark(#f3ead6, #443c2b);
+  --danger: light-dark(#a4493d, #edb0a2);
+  --danger-soft: light-dark(#f7e6df, #49332e);
+  --shadow: light-dark(#283f3310, #10140e28);
+  --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  background: var(--bg); color: var(--ink); font-synthesis: none;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 0 32px 140px; }
+button { font: inherit; cursor: pointer; }
+.mock-switch { position: fixed; right: 16px; top: 12px; z-index: 50; display: flex; gap: 4px; padding: 4px; border-radius: 8px; background: var(--ink); color: var(--bg); font-size: 11px; }
+.mock-switch span { align-self: center; padding: 0 8px; opacity: .7; }
+.mock-switch button { border: 0; border-radius: 5px; padding: 6px 10px; background: transparent; color: inherit; }
+.mock-switch button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+
+.masthead { width: min(1200px, 100%); margin: 0 auto; min-height: 72px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand-mark { display: flex; align-items: center; gap: 4px; height: 26px; color: var(--accent); }
+.brand-mark span { width: 5px; height: 12px; background: currentColor; border-radius: 4px; }
+.brand-mark span:nth-child(2) { height: 26px; } .brand-mark span:nth-child(3) { height: 18px; }
+h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.04em; }
+.scene-name { font-size: 12px; color: var(--muted); } .scene-name b { font-weight: 500; color: var(--ink); }
+
+/* 中央の流れ。1本の列 */
+#stream { width: min(720px, 100%); margin: 20px auto 0; display: grid; gap: 18px; }
+
+/* 目標は折りたたみ。既定は閉じている */
+#goals { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font-size: 12px; color: var(--muted); }
+#goals b { color: var(--ink); font-weight: 500; }
+#goals .chips { display: flex; gap: 6px; margin-left: 6px; }
+#goals .chips span { padding: 3px 8px; border-radius: 999px; background: var(--surface-alt); font-size: 11px; }
+#goals .chips span[data-status="used_well"] { background: var(--soft); color: var(--success); }
+#goals .chips span[data-status="modeled"] { background: var(--warning-soft); color: var(--warning); }
+#goals .more { margin-left: auto; border: 0; background: transparent; color: var(--muted); font-size: 12px; }
+
+/* 1ターン = 1行。話している間は波形だけ、閉じたら文字が下に出る */
+.turn { display: grid; gap: 6px; max-width: 78%; }
+.turn.teacher { justify-self: start; }
+.turn.you { justify-self: end; text-align: right; }
+.who { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.wave { display: inline-flex; width: fit-content; justify-self: start; align-items: center; gap: 3px; height: 44px; padding: 0 18px; border-radius: 22px; }
+.turn.you .wave { justify-self: end; }
+#live-turn { display: none; } body[data-turn="you"] #live-turn { display: grid; }
+.turn.teacher .wave { background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
+.turn.you .wave { background: var(--soft); border-bottom-right-radius: 6px; }
+.wave i { width: 3px; border-radius: 2px; background: var(--accent); height: var(--h, 12px); opacity: .8; }
+.turn.live .wave i { animation: bar .9s ease-in-out infinite; animation-delay: calc(var(--i) * 60ms); }
+@keyframes bar { 50% { transform: scaleY(.35); } }
+.text { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink); }
+.turn.teacher .text { font-family: var(--serif); font-size: 17px; }
+.turn.live .text { display: none; }
+.meta { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+.meta button { min-height: 26px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); font-size: 11px; }
+.meta .used { padding: 3px 8px; border-radius: 999px; background: var(--soft); color: var(--success); }
+
+/* 言い直しは流れの中に差し込まれる */
+.recast-card { justify-self: stretch; padding: 18px 22px; border: 1px solid var(--accent); border-radius: 14px; background: var(--surface); box-shadow: 0 10px 30px var(--shadow); }
+.recast-card .kicker { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.recast-card .orig { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+.recast-card .orig s { text-decoration-color: var(--danger); }
+.recast-card .recast { margin: 6px 0 0; font-family: var(--serif); font-size: 22px; line-height: 1.4; }
+.recast-card .recast mark { background: var(--soft); color: var(--accent); border-radius: 4px; padding: 0 4px; }
+.recast-card .note { margin: 10px 0 0; font-size: 12px; color: var(--accent); }
+.recast-card .row { display: flex; gap: 8px; margin-top: 14px; }
+.recast-card .row .say { min-height: 38px; padding: 0 16px; border: 0; border-radius: 9px; background: var(--accent); color: var(--on-accent); font-weight: 500; }
+.recast-card .row .ghost { min-height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: transparent; color: var(--ink); }
+
+/* 下に留まる操作列。番の状態で色が変わる */
+#dock { position: fixed; left: 0; right: 0; bottom: 0; padding: 14px 32px 22px; background: linear-gradient(to top, var(--bg) 70%, transparent); }
+#dock .bar { width: min(720px, 100%); margin: 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; padding: 12px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: 0 12px 34px var(--shadow); transition: all .3s ease; }
+body[data-turn="you"] #dock .bar { background: var(--soft); border-color: var(--accent); }
+#state { display: grid; gap: 2px; }
+#state .big { font-family: var(--serif); font-size: 22px; letter-spacing: -.01em; }
+#state .sub { font-size: 11px; color: var(--muted); }
+body[data-turn="you"] #state .big { color: var(--accent); }
+#mic { width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: grid; place-items: center; transition: all .2s ease; }
+body[data-turn="you"] #mic { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+#mic svg { width: 24px; height: 24px; }
+#dock .right { display: flex; justify-content: flex-end; gap: 8px; }
+#dock .right button { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; }
+#dock .right .end { color: var(--danger); border-color: transparent; }
+.legend { width: min(720px, 100%); margin: 28px auto 0; font-size: 12px; color: var(--muted); line-height: 1.7; }
+</style>
+</head>
+<body data-turn="you">
+<div class="mock-switch" role="group" aria-label="モックアップの状態">
+  <span>状態</span>
+  <button type="button" data-set="teacher" aria-pressed="false">先生が話す</button>
+  <button type="button" data-set="you" aria-pressed="true">あなたの番</button>
+  <button type="button" data-set="thinking" aria-pressed="false">聞いている</button>
+</div>
+
+<header class="masthead">
+  <div class="brand"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><h1>English Teacher</h1></div>
+  <span class="scene-name">シーン会話 · <b>IT系: 朝会で進捗を話す</b> · 04:12</span>
+</header>
+
+<main id="stream">
+  <div id="goals"><span>目標</span><b>1 / 5</b>
+    <div class="chips"><span data-status="used_well">✓ I'm working on</span><span data-status="modeled">blocked by</span></div>
+    <button type="button" class="more">残り3つ ▾</button>
+  </div>
+
+  <div class="turn teacher">
+    <span class="who">teacher</span>
+    <span class="wave"><i style="--h:10px"></i><i style="--h:22px"></i><i style="--h:30px"></i><i style="--h:16px"></i><i style="--h:26px"></i><i style="--h:12px"></i><i style="--h:20px"></i><i style="--h:8px"></i></span>
+    <p class="text">Morning! What are you working on today?</p>
+  </div>
+
+  <div class="turn you">
+    <span class="who">you</span>
+    <span class="wave"><i style="--h:8px"></i><i style="--h:18px"></i><i style="--h:26px"></i><i style="--h:14px"></i><i style="--h:22px"></i><i style="--h:10px"></i></span>
+    <p class="text">I'm working on the login bug.</p>
+    <span class="meta"><span class="used">✓ I'm working on</span><button type="button">▶ 0:04</button></span>
+  </div>
+
+  <div class="turn teacher">
+    <span class="who">teacher</span>
+    <span class="wave"><i style="--h:12px"></i><i style="--h:24px"></i><i style="--h:32px"></i><i style="--h:18px"></i><i style="--h:28px"></i><i style="--h:14px"></i><i style="--h:22px"></i><i style="--h:10px"></i><i style="--h:20px"></i></span>
+    <p class="text">Nice. So what's blocking you on the login bug?</p>
+  </div>
+
+  <div class="turn you">
+    <span class="who">you</span>
+    <span class="wave"><i style="--h:10px"></i><i style="--h:20px"></i><i style="--h:28px"></i><i style="--h:12px"></i><i style="--h:24px"></i><i style="--h:8px"></i><i style="--h:16px"></i></span>
+    <p class="text">I wait the API team answer.</p>
+    <span class="meta"><button type="button">▶ 0:06</button></span>
+  </div>
+
+  <div class="recast-card">
+    <div class="kicker">言い直してみよう</div>
+    <p class="orig">I <s>wait</s> the API team <s>answer</s>.</p>
+    <p class="recast">I'm <mark>blocked by</mark> the API team. I'm <mark>waiting for</mark> their answer.</p>
+    <p class="note">blocked by … は「進まない理由」を一言で。wait は for が要ります。</p>
+    <div class="row"><button type="button" class="say">🎙 もう一度言う</button><button type="button" class="ghost">▶ 自分の声を聞く</button></div>
+  </div>
+
+  <div class="turn you live" id="live-turn">
+    <span class="who">you · 話している</span>
+    <span class="wave"><i style="--h:10px;--i:0"></i><i style="--h:22px;--i:1"></i><i style="--h:30px;--i:2"></i><i style="--h:14px;--i:3"></i><i style="--h:26px;--i:4"></i><i style="--h:12px;--i:5"></i></span>
+    <p class="text"></p>
+  </div>
+</main>
+
+<div id="dock">
+  <div class="bar">
+    <div id="state" aria-live="polite"><span class="big">あなたの番</span><span class="sub">カードの文を口に出してみよう</span></div>
+    <button id="mic" type="button" aria-label="マイク">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg>
+    </button>
+    <div class="right"><button type="button">ヒント</button><button type="button" class="end">終了</button></div>
+  </div>
+</div>
+
+<p class="legend">案C: 会話を1本の流れとして縦に並べる。話している間は波形だけで、ターンが閉じてから文字が出る。自分の行には再生ボタンが付き、使えた表現はその行に印が付く。言い直しは流れの中に差し込まれる。番と操作は下に固定した1本の棒にまとめ、自分の番になると棒の色が変わる。</p>
+
+<script>
+const big = document.querySelector('#state .big');
+const sub = document.querySelector('#state .sub');
+const states = {
+  teacher: ['先生が話しています', '聞くだけでいい'],
+  you: ['あなたの番', 'カードの文を口に出してみよう'],
+  thinking: ['聞いています…', ''],
+};
+document.querySelectorAll('.mock-switch button').forEach(b => b.addEventListener('click', () => {
+  const s = b.dataset.set;
+  document.querySelectorAll('.mock-switch button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.body.dataset.turn = s;
+  [big.textContent, sub.textContent] = states[s];
+}));
+</script>
+</body>
+</html>

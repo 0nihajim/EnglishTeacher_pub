@@ -1,0 +1,42 @@
+{
+  "name": "gemini-englearn",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "英会話練習アプリ: Gemini Live API の全二重音声に、function calling で出る単語カードと復習パネルを重ねる。",
+  "type": "module",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "generate:content": "node scripts/generate-content.mjs",
+    "cf:export": "node scripts/export-local-results.mjs",
+    "cf:types": "node scripts/cloudflare-types.mjs",
+    "cf:check": "npm run cf:types && tsc --noEmit -p cloudflare/tsconfig.json",
+    "cf:build": "wrangler deploy --dry-run --outdir .wrangler/build",
+    "cf:dev": "wrangler dev --local --var LOCAL_DEV:true",
+    "cf:deploy": "node scripts/cloudflare-deploy.mjs",
+    "cf:migrate:local": "node scripts/cloudflare-migrate.mjs --local",
+    "cf:migrate:remote": "node scripts/cloudflare-migrate.mjs --remote",
+    "cf:test": "node --import tsx --test 'cloudflare/src/**/*.test.ts'",
+    "cf:smoke": "npm run cf:build && node scripts/cloudflare-smoke.mjs",
+    "predev": "npm run generate:content",
+    "prestart": "npm run generate:content",
+    "prebuild": "npm run generate:content",
+    "pretest": "npm run generate:content",
+    "pretypecheck": "npm run generate:content",
+    "check-env": "node scripts/check-env.mjs",
+    "dev": "node scripts/check-env.mjs && node scripts/dev.mjs",
+    "build": "npm run build -w web",
+    "start": "node scripts/check-env.mjs && npm run start -w server",
+    "test": "npm run test -w server",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web"
+  },
+  "engines": {
+    "node": ">=22.16"
+  },
+  "devDependencies": {
+    "wrangler": "4.135.0"
+  }
+}

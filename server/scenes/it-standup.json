@@ -1,0 +1,49 @@
+{
+  "id": "it-standup",
+  "title": "IT系: 朝会で進捗を話す",
+  "situation": "You are Mia, a teammate in a small software team, running a casual daily standup with the learner. Ask what they are working on, what is blocking them, what they finished yesterday, and what ships this week. React like a real teammate: offer help with blockers, ask one follow-up at a time, and keep it short like a real standup.",
+  "learnerRole": "バックエンド担当のエンジニア",
+  "promptVoice": true,
+  "drillLimitMs": 8000,
+  "targets": [
+    {
+      "term": "I'm working on",
+      "meaning": "〜に取り組んでいる",
+      "example": "I'm working on the login bug.",
+      "variants": ["I am working on"]
+    },
+    {
+      "term": "blocked by",
+      "meaning": "〜で止まっている",
+      "example": "I'm blocked by the API change.",
+      "variants": ["blocked on"]
+    },
+    {
+      "term": "roll out",
+      "meaning": "展開する、リリースする",
+      "reading": "ロール・アウト",
+      "example": "We'll roll out the new version on Friday.",
+      "variants": ["rolling out", "rolled out"]
+    },
+    {
+      "term": "figure out",
+      "meaning": "原因や方法を突き止める",
+      "reading": "フィギュア・アウト",
+      "example": "I'm still trying to figure out why the tests fail.",
+      "variants": ["figured out", "figuring out"]
+    },
+    {
+      "term": "should be done by",
+      "meaning": "〜までには終わるはず",
+      "example": "It should be done by tomorrow."
+    }
+  ],
+  "drills": [
+    { "ja": "今ログインのバグに取り組んでいます。", "en": "I'm working on the login bug.", "accept": ["I am working on the login bug."] },
+    { "ja": "API の変更で止まっています。", "en": "I'm blocked by the API change.", "accept": ["I'm blocked on the API change."] },
+    { "ja": "金曜に新しいバージョンをリリースします。", "en": "We'll roll out the new version on Friday.", "accept": ["We will roll out the new version on Friday."] },
+    { "ja": "テストが落ちる原因をまだ調べています。", "en": "I'm still trying to figure out why the tests fail." },
+    { "ja": "明日までには終わるはずです。", "en": "It should be done by tomorrow." },
+    { "ja": "昨日、決済の修正を終えました。", "en": "I finished the payment fix yesterday.", "accept": ["Yesterday I finished the payment fix."] }
+  ]
+}

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>案A 舞台ひとつ — 会話中の画面モックアップ</title>
+<style>
+/* Paper & Sage — 本体 web/src/style.css と同じトークン */
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#f3f1e9, #252822);
+  --surface: light-dark(#fcfbf6, #30352d);
+  --surface-alt: light-dark(#eeeee4, #292e26);
+  --ink: light-dark(#283f33, #eff0e5);
+  --muted: light-dark(#657166, #b2baac);
+  --line: light-dark(#d4dacd, #50594b);
+  --accent: light-dark(#355942, #c4d8b4);
+  --on-accent: light-dark(#ffffff, #23321f);
+  --soft: light-dark(#e3e9dc, #3a4733);
+  --success: light-dark(#326445, #bdd8ac);
+  --warning: light-dark(#846022, #e5c184);
+  --warning-soft: light-dark(#f3ead6, #443c2b);
+  --danger: light-dark(#a4493d, #edb0a2);
+  --danger-soft: light-dark(#f7e6df, #49332e);
+  --shadow: light-dark(#283f3310, #10140e28);
+  --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  background: var(--bg); color: var(--ink); font-synthesis: none;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 0 32px 32px; }
+button { font: inherit; cursor: pointer; }
+
+/* モックアップ用の状態切替(製品には無い) */
+.mock-switch { position: fixed; right: 16px; top: 12px; z-index: 50; display: flex; gap: 4px; padding: 4px; border-radius: 8px; background: var(--ink); color: var(--bg); font-size: 11px; }
+.mock-switch span { align-self: center; padding: 0 8px; opacity: .7; }
+.mock-switch button { border: 0; border-radius: 5px; padding: 6px 10px; background: transparent; color: inherit; }
+.mock-switch button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+
+.masthead { width: min(1200px, 100%); margin: 0 auto; min-height: 72px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand-mark { display: flex; align-items: center; gap: 4px; height: 26px; color: var(--accent); }
+.brand-mark span { width: 5px; height: 12px; background: currentColor; border-radius: 4px; }
+.brand-mark span:nth-child(2) { height: 26px; } .brand-mark span:nth-child(3) { height: 18px; }
+h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.04em; }
+.scene-name { font-size: 12px; color: var(--muted); }
+.scene-name b { font-weight: 500; color: var(--ink); }
+
+#layout { width: min(1200px, 100%); margin: 24px auto 0; display: grid; gap: 0; }
+
+/* 舞台。画面いっぱい、字幕欄なし */
+#stage { position: relative; min-height: 600px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface-alt); overflow: hidden; }
+
+/* 目標表現: 英語だけの帯。使えたら点灯 */
+#targets { position: absolute; top: 18px; left: 20px; right: 20px; display: flex; align-items: center; gap: 8px; }
+.chip { padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; color: var(--muted); letter-spacing: .01em; }
+.chip[data-status="used_well"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.chip[data-status="modeled"] { border-color: var(--warning); color: var(--warning); background: var(--warning-soft); }
+.chip[data-status="heard"] { border-color: var(--accent); color: var(--accent); }
+.chip[data-status="used_well"]::before { content: "✓ "; }
+.targets-count { margin-left: auto; font-size: 11px; letter-spacing: .12em; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* 番の表示。舞台の主役 */
+#turn { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding-bottom: 40px; transition: transform .4s ease; }
+#stage[data-card] #turn { transform: translateY(-130px) scale(.7); }
+.halo { position: relative; width: 184px; height: 184px; display: grid; place-items: center; }
+.halo .ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--line); transition: all .4s ease; }
+.halo .core { width: 96px; height: 96px; border-radius: 50%; background: var(--accent); opacity: .55; transform: scale(.85); transition: all .3s ease; }
+.halo .bars { position: absolute; display: none; gap: 5px; align-items: center; height: 40px; }
+.halo .bars i { width: 5px; height: 14px; border-radius: 3px; background: var(--accent); animation: bar 1s ease-in-out infinite; }
+.halo .bars i:nth-child(2) { height: 30px; animation-delay: .1s; } .halo .bars i:nth-child(3) { height: 40px; animation-delay: .2s; }
+.halo .bars i:nth-child(4) { height: 24px; animation-delay: .3s; } .halo .bars i:nth-child(5) { height: 12px; animation-delay: .4s; }
+@keyframes bar { 50% { transform: scaleY(.4); } }
+.turn-label { margin: 0; font-family: var(--serif); font-size: 30px; font-weight: 400; letter-spacing: -.02em; color: var(--ink); text-align: center; }
+.turn-sub { margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
+
+/* 先生が話している */
+#stage[data-turn="teacher"] .core { opacity: 1; transform: scale(1); animation: breathe 1.6s ease-in-out infinite; }
+#stage[data-turn="teacher"] .ring { transform: scale(1.15); border-color: var(--accent); }
+@keyframes breathe { 50% { transform: scale(1.06); } }
+/* あなたの番 */
+#stage[data-turn="you"] .core { opacity: 0; transform: scale(.3); }
+#stage[data-turn="you"] .ring { border: 2px dashed var(--accent); }
+#stage[data-turn="you"] .bars { display: flex; }
+#stage[data-turn="you"] .turn-label { color: var(--accent); }
+/* 聞いています(処理中) */
+#stage[data-turn="thinking"] .core { opacity: .35; transform: scale(.5); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .1; } }
+
+/* 先生の最後の一文だけ。ターンが閉じてから出る */
+#caption { position: absolute; left: 0; right: 0; bottom: 28px; padding: 0 60px; text-align: center; font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--muted); line-height: 1.5; }
+#caption::before { content: "teacher"; display: block; margin-bottom: 6px; font-family: -apple-system, "Hiragino Sans", sans-serif; font-style: normal; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; opacity: .7; }
+#stage[data-card] #caption { opacity: 0; }
+
+/* 言い直しカード。読んで終わらせず、もう一度言うまで閉じない */
+#overlay { position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: center; padding: 24px; }
+#stage[data-card] #overlay { display: flex; }
+.card { width: min(600px, 100%); padding: 22px 26px 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: 0 14px 40px var(--shadow); animation: card-in .3s ease both; }
+@keyframes card-in { from { opacity: 0; transform: translateY(14px); } }
+.card .kicker { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.card .orig { margin: 12px 0 0; font-size: 15px; color: var(--muted); line-height: 1.6; }
+.card .orig s { text-decoration-color: var(--danger); text-decoration-thickness: 1.5px; }
+.card .arrow { margin: 10px 0 6px; color: var(--muted); font-size: 13px; }
+.card .recast { margin: 0; font-family: var(--serif); font-size: 24px; line-height: 1.4; letter-spacing: -.01em; }
+.card .recast mark { background: var(--soft); color: var(--accent); border-radius: 4px; padding: 0 4px; }
+.card .note { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--accent); line-height: 1.6; }
+.card .actions { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+.card .actions .primary { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 18px; border: 0; border-radius: 9px; background: var(--accent); color: var(--on-accent); font-weight: 500; }
+.card .actions .ghost { min-height: 42px; padding: 0 14px; border: 1px solid var(--line); border-radius: 9px; background: transparent; color: var(--ink); }
+.card .actions .later { margin-left: auto; border: 0; background: transparent; color: var(--muted); font-size: 12px; }
+
+/* 操作列。マイクが主役の大きさ */
+#controls { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; padding: 18px 8px 0; }
+#status { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--muted); }
+#status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+#mic-wrap { display: flex; align-items: center; gap: 14px; }
+#mic { width: 76px; height: 76px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: grid; place-items: center; transition: all .2s ease; }
+#stage[data-turn="you"] ~ #controls #mic { background: var(--accent); color: var(--on-accent); border-color: var(--accent); box-shadow: 0 0 0 8px var(--soft); }
+#mic svg { width: 28px; height: 28px; }
+.small { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; }
+#end { justify-self: end; min-height: 36px; padding: 0 14px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--danger); font-size: 13px; }
+#end:hover { border-color: var(--danger); background: var(--danger-soft); }
+.legend { width: min(1200px, 100%); margin: 28px auto 0; font-size: 12px; color: var(--muted); line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="mock-switch" role="group" aria-label="モックアップの状態">
+  <span>状態</span>
+  <button type="button" data-set="teacher" aria-pressed="false">先生が話す</button>
+  <button type="button" data-set="you" aria-pressed="false">あなたの番</button>
+  <button type="button" data-set="thinking" aria-pressed="false">聞いている</button>
+  <button type="button" data-set="card" aria-pressed="true">言い直し</button>
+</div>
+
+<header class="masthead">
+  <div class="brand"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><h1>English Teacher</h1></div>
+  <span class="scene-name">シーン会話 · <b>IT系: 朝会で進捗を話す</b> · 04:12</span>
+</header>
+
+<main id="layout">
+  <div id="stage" data-turn="you" data-card>
+    <div id="targets" aria-label="目標表現">
+      <span class="chip" data-status="used_well">I'm working on</span>
+      <span class="chip" data-status="modeled">blocked by</span>
+      <span class="chip" data-status="heard">follow up</span>
+      <span class="chip">wrap up</span>
+      <span class="chip">push back</span>
+      <span class="targets-count">1 / 5</span>
+    </div>
+
+    <div id="turn" aria-live="polite">
+      <div class="halo"><span class="ring"></span><span class="core"></span><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></div>
+      <p class="turn-label">あなたの番</p>
+      <p class="turn-sub">カードの文を、口に出してみよう</p>
+    </div>
+
+    <p id="caption">Nice. So what's blocking you on the login bug?</p>
+
+    <div id="overlay">
+      <div class="card">
+        <div class="kicker">言い直してみよう</div>
+        <p class="orig">I <s>wait</s> the API team <s>answer</s>.</p>
+        <div class="arrow">↓</div>
+        <p class="recast">I'm <mark>blocked by</mark> the API team. I'm <mark>waiting for</mark> their answer.</p>
+        <p class="note">blocked by … は「進まない理由」を一言で伝える言い方。wait は for が要ります。</p>
+        <div class="actions">
+          <button type="button" class="primary">🎙 もう一度言う</button>
+          <button type="button" class="ghost">▶ 自分の声を聞く</button>
+          <button type="button" class="later">あとで</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <div id="status">接続中 · 自動で区切る</div>
+    <div id="mic-wrap">
+      <button type="button" class="small">ヒント</button>
+      <button id="mic" type="button" aria-label="マイク">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg>
+      </button>
+      <button type="button" class="small">字幕を見る</button>
+    </div>
+    <button id="end" type="button">終了して振り返る</button>
+  </div>
+</main>
+
+<p class="legend">案A: 会話中は舞台だけ。字幕欄を外し、先生の最後の一文だけを下に出す。目標表現は英語の帯で、使えたら点灯。言い直しカードは「もう一度言う」を押すか、話し始めるまで閉じない。字幕と指導ノートは終了後の振り返り画面に集める。</p>
+
+<script>
+const stage = document.getElementById('stage');
+const label = document.querySelector('.turn-label');
+const sub = document.querySelector('.turn-sub');
+const states = {
+  teacher: ['先生が話しています', '聞くだけでいい'],
+  you: ['あなたの番', '話し終えたら、少し待つだけ'],
+  thinking: ['聞いています…', ''],
+  card: ['あなたの番', 'カードの文を、口に出してみよう'],
+};
+document.querySelectorAll('.mock-switch button').forEach(b => b.addEventListener('click', () => {
+  const s = b.dataset.set;
+  document.querySelectorAll('.mock-switch button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  stage.dataset.turn = s === 'card' ? 'you' : s;
+  if (s === 'card') stage.setAttribute('data-card', ''); else stage.removeAttribute('data-card');
+  [label.textContent, sub.textContent] = states[s];
+}));
+</script>
+</body>
+</html>
